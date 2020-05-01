@@ -1,15 +1,60 @@
 import random
 
+GRADES_FILE="grades.txt"
 chars = {} # Identify the score of each character
 old_strings = []
 special_charecters = [",", "/", "\\", "\'", "\"", "*", ")", "%", "=", "-"] # special charecters to add extra garde
-def initialize():
-	for i in range(33, 127):
-		chars[chr(i)] = 0
 
-	# Add extra score to specific characters
-	for char in special_charecters:
-		chars[char] += 1
+def is_file_empty(filepath):
+	""" Check if file is empty by reading first character in it"""
+	# open ile in read mode
+	read_obj = open(filepath, 'r')
+	# read first character
+	one_char = read_obj.read(1)
+	# if not fetched then file is empty
+	if not one_char:
+		return True
+	return False
+
+def update_grades_from_file(filepath):
+	"""
+	This function is updating the grades in the run using the grade in the file
+	"""
+	f = open(GRADES_FILE, "r")
+	grade_lines = f.readlines()
+
+	for line in grade_lines:
+		char, grade = line.split(" ")
+		chars[char] = int(grade)
+
+	f.close()
+
+def update_grades_to_file(filepath):
+	"""
+	This file is in charge of back up the current grades in the running file to a backup grades file
+	"""
+	f = open("grades.txt", "w")
+	for char, grade in chars.items():
+		f.write("{0} {1}\n".format(str(char), str(grade)))
+	f.close()
+
+
+def initialize():
+	# Check if there is a backup for grades
+	if is_file_empty(GRADES_FILE):
+		# The file is empty so we will fill it with new grades
+		for i in range(33, 127):
+			chars[chr(i)] = 0
+
+		# Add extra score to specific characters
+		for char in special_charecters:
+			chars[char] += 1
+	else:
+		update_grades_from_file(GRADES_FILE)
+
+	# Anyway before starting to handle, we backup the grades file
+	update_grades_to_file(GRADES_FILE)
+
 
 """
 def create_string(grade, length):
@@ -56,5 +101,3 @@ def add_grade(s):
 
 if __name__ == '__main__':
 	initialize()
-
-	print create_string(1, 15)

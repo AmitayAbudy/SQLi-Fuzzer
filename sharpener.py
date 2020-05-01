@@ -1,8 +1,10 @@
-import blind_sql_injection
+import sql_creator
 import random
 
+# Get the strings to use to grade
 with open("sql_bank.txt") as f:
-	lines = f.readlines()
+	sql_lines = f.readlines()
+	f.close()
 
 
 def count_specials(s):
@@ -13,7 +15,7 @@ def count_specials(s):
 
 	return counter
 
-blind_sql_injection.initialize()
+sql_creator.initialize()
 """
 s = blind_sql_injection.create_string(2, 10)
 print "len: " + str(len(s))
