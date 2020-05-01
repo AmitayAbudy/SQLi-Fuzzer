@@ -4,7 +4,6 @@ This file is to keep track with my to dos and to clearify the intention of each 
 ## To Do's
 * Fix the sql injection string creator at blind_sql_injection.py
 * Combine the usage of blind_sql_injection.py with check_website.py
-* Find better file names
 
 ## Files
 
