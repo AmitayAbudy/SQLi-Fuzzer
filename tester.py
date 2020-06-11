@@ -106,7 +106,7 @@ if __name__ == '__main__':
     #     Injection: SLEEP(1)/*' or SLEEP(1) or \'\" or SLEEP(5) or \"*/
     #     Error: \' OR 1=1
     #     Normal: asdfgh
-
-    URL = "http://localhost/bricks/login-1/index.php"
-    payload = ""
-    print(payload_check(URL, payload))
+	print("aa")
+	URL = "http://localhost/bricks/login-1/index.php"
+	payload = "SLEEP(1)/*' or SLEEP(1) or \'\" or SLEEP(1) or \"*/"
+	print(payload_check(URL, payload))
