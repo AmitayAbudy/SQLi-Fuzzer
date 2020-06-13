@@ -6,20 +6,19 @@ all_strings = []
 
 def init_stats(filename):
     """
-    This function loads the statistics tree that stores all the posible options
-    and the chances for them to happen.
+    This function loads the statistics from the json file
+    and returns dictionary that inclides two lists:
+        one for the next available chars
+        and the second for the probability of it.
     """
     with open(filename) as json_file:
         data = json.load(json_file)
-    opening = data["opening"][0]
-    sql = data["sql"][0]
-    commands = data["commands"][0]
-    comment = data["comment"][0]
 
-    return opening, sql, commands, comment
+    statistics = {}
+    for chr, stats in data.items():
+        statistics[chr] = (list(stats.keys()), list(stats.values()))
 
-def split_lists():
-    pass
+    return statistics
 
 
 def new_string_tree(s, id):
@@ -69,4 +68,4 @@ def get_value(id):
     return "False"
 
 if __name__ == '__main__':
-    pass
+    print(init_stats("odds.json"))

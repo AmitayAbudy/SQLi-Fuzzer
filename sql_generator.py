@@ -1,10 +1,47 @@
-import random
+import numpy as np
 import uuid
 import db
+# from health import calculate_final_stats
 
-opening_odds, sql_odds, commands_odds, comment_odds = db.init_stats("odds.json")
-
+# automate this as well
+opening_chars = ["\'", "\"", ")"]
 string_trees = []
+
+stats = db.init_stats("odds.json")
+
+def create_string(command=10):
+    """
+    """
+    id = uuid.uuid4()
+    s = ""
+    # automate this as well
+    current_char = np.random.choice(opening_chars)
+    s += current_char
+    string_trees.append(db.new_string_tree(s, id))
+
+    current_id = id
+    current_prob = 0.0
+    while len(s.split()) < command:
+        s += " "
+        s += np.random.choice(stats[current_char][0], replace=True, p=stats[current_char][1])
+
+        # Comments with no further options, making the code get stuck
+        if s[-1] in ["#"] or s[-2:] in ["--"]:
+            return current_id, s
+        # Avoiding duplicates
+        if len(s) > 2:
+            if s[-1] == s[-2] and s[-2] == s[-3]:
+                s = s[:-1]
+
+        new_id = uuid.uuid4()
+        db.add_son(current_id, s, new_id)
+
+        current_id = new_id
+        current_char = s.split()[-1]
+        # current_prob = calculate_final_stats(s)
+        print(s, current_prob)
+
+    return current_id, s
 
 def new_string():
     """
@@ -17,7 +54,7 @@ def new_string():
 
     # creating the string
     for i in range(random.randrange(1, 4)):
-        s += random.choice(opening_group)
+        s += np.random.choice([opts], replace=True, p=opening_odds)
 
     s += " "
 
@@ -69,10 +106,4 @@ def add_comment(id):
 
 
 if __name__ == '__main__':
-
-    id, s = new_string()
-    print(s)
-    id1, s = add_command(id)
-    print(s)
-    id2, s = add_comment(id1)
-    print(s)
+    print(create_string()[1])
