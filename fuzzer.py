@@ -1,79 +1,182 @@
-import requests
-from bs4 import BeautifulSoup
+import sys, getopt
+import json
+import logging
 
-import random # These lines and their use in lines 66,67 are temporary until I finalize the sql_creator
-PAYLOADS = "sql_bank.txt"
+from sql_generator import *
+from tester import payload_check
 
-def get_input_fields(URL):
-	"""
-	This function gets URL and returns all the id/name of the input tags in this url
-	:param: URL - The url to get the info from
-	"""
-	# Get the html page
-	r = requests.get(URL)
-	soup = BeautifulSoup(r.text, 'html.parser')
+logging.basicConfig(filename="logs/fuzzer.log", level=logging.DEBUG)
+fuzzer_logger = logging.getLogger("Fuzzer")
 
-	# Check all the input tags
-	fields = []
-	for inpt in soup.find_all("input"):
-	# Some sites uses the name of the tag to send the data instead of the id
-		if "id" in inpt.attrs:
-			fields.append(inpt["id"])
-		elif "name" in inpt.attrs:
-			fields.append(inpt["name"])
-		else:
-			print("Can't handle this input tag:\n" + str(inpt))
+url = "http://localhost/login-1/"
+total_base_strings = 10
+max_tries = 7
+odds_file = "odds.json"
+debug_mode = False
 
-	return fields
+def init_args(argv):
+    """
+    This function initialize the args from cmd/Terminal
+    """
+    global url, total_base_strings, max_commands, odds_file, debug_mode
+    with open("txt/help.txt") as f:
+        help_lines = f.readlines()
+        help_lines = "".join(help_lines)
+    try:
+        opts, args = getopt.getopt(argv,"u:b:t:f:d")
+    except getopt.GetoptError:
+        print("fuzzer.py -u <url to check> -b <max base strings> " \
+        "-t <max tries for string> -f <odds filename>\n" + help_lines)
+        sys.exit(2)
+
+    for opt, arg in opts:
+        if opt == '-h':
+            print("fuzzer.py -u <url to check> -t <max base strings> " \
+            "-c <max commands> -f <odds filename>\n" + help_lines)
+            sys.exit()
+        elif opt in "-u":
+            url = arg
+        elif opt in "-b":
+            total_base_strings = arg
+        elif opt in "-t":
+            max_commands = arg
+        elif opt in "-f":
+            odds_file = arg
+        elif opt in "-d":
+            debug_mode = True
+
+def change_info_in_string(s, info):
+    """
+    This function is an addon to the txt_results function.
+    It help altering info inside the report format easier.
+    """
+    num_len = len(str(info))
+    s = s[:39] + str(info) + s[39 + num_len:]
+    return s
+
+def txt_results(tries_num, success_num, strings_list):
+    s = ""
+    # Adding the fixed report info
+    with open("txt/sample_report.txt") as f:
+        lines = f.readlines()
+    for l in lines[:5]:
+        s += l
+    # Adding the tries and success info
+    s += change_info_in_string(lines[5], tries)
+    s += change_info_in_string(lines[5], success)
+
+    for l in lines[7:10]:
+        s += l
+
+    s += change_info_in_string(lines[10], total_base_strings)
+    s += change_info_in_string(lines[11], max_commands)
+
+    for l in lines[12:17]:
+        s += l
+
+    with open("report_file.txt", "w") as f:
+        f.write(s + "\n")
+        for tried_string in strings_list:
+            f.write(tried_string + "\n")
+
+    return s
 
 
-def send_data(URL, params):
-	"""
-	This function sends the givemn parameters in params to the URL using post method
-		TO DO: check automaticly wether or not to send in POST of GET
-	The function returns the status code of the response and the time it took for the response to come
-	:param: URL - The url to send the data to
-	:param: params - The parameters to send. MUST BE IN THE FORMAT {id/name: data}
-	"""
-	# Check how to send the data (get/post)
-	r = requests.get(URL)
-	soup = BeautifulSoup(r.text, 'html.parser')
+def fuzzing():
+    """
+    This is the fuzzing function.
+    It generates strings and tries them.
+    The function prints a summarized report and returns the successful strings
+    """
+    garbage = [] # Stores the old, non-working strings
+    s_list = [] # Stores the base strings
+    abnormal = [] # Stores the strings with abnormal behaviours
 
-	form_tag = soup.find_all("form")
-	form_tag = form_tag[0]
+    # Making the base strings
+    for i in range(total_base_strings):
+        s = create_string(5)
+        if debug_mode:
+            fuzzer_logger.debug("Base string: {}".format(s))
+        s_list.append(s)
 
-	# Sends the response to the URL
-	if "method" in form_tag.attrs and form_tag["method"].lower() == "post":
-		# Use default - GET
-		r = requests.post(URL, data=params)
-	else:
-		r = requests.get(URL, data=params)
+    # Testing every base string
+    for s in s_list:
+        c = payload_check(s, check_address)
+        if debug_mode:
+            fuzzer_logger.debug("Checked: {}, Result: {}".format(s, c))
+        if c is not "normal":
+            # tester.notify(c)
+            abnormal.append(s)
+            s_list.remove(s)
+
+    # Adding commands to the "normal" base string to get different result
+    for s in s_list:
+        tries = 0
+        if debug_mode:
+            fuzzer_logger.debug("Upgrading \"normal\" strings:")
+        while tries < max_tries:
+            garbage.append(s)
+            s = upgrade(s)
+            c = check(s, check_address)
+            if debug_mode:
+                fuzzer_logger.debug("Checked: {}, Result: {}".format(s, c))
+            if c is not "normal":
+                # tester.notify(c)
+                abnormal.append(s)
+                s_list.remove(s)
+                break
+
+    # Trying to make error strings have a success
+    if debug_mode:
+        fuzzer_logger.debug("Checking abnormal strings")
+    for s in abnormal_strings:
+        garbage.append(s)
+        s = input.upgrade()
+        c = check(s, check_address)
+        if debug_mode:
+            fuzzer_logger.debug("Checked: {}, Result: {}".format(s, c))
+        if c is "normal":
+            # abnormal string has stopped working
+            garbage.append(s)
+            continue
+        if c is "error":
+            # Same result as before, still interesting
+            error_list.append(s)
+        if c is "success":
+            # This is a perfect string, goes straight to save
+            successful_list.append(s)
+
+    # Trying to make error string be successful
+    if debug_mode:
+        fuzzer_logger.debug("Cheking error strings")
+    for s in error_list:
+        tries = 0
+        while tries < max_tries_per_string:
+            garbage.append(s)
+            s = input.upgrade(s)
+            c = tester.check(s, check_site)
+            if debug_mode:
+                fuzzer_logger.debug("Checked: {}, Result: {}".format(s, c))
+            if c is "error":
+                continue # nothing has changed, continue to check
+            if c is "normal":
+                garbage.append(s) # error string broke, throw it to garbage
+                break
+            if c is "success":
+                successful_list.append(s) # the string is perfect!, Saving it...
+                break
+
+    total_tries = len(s_list) + len(garbage) + len(error_list) + len(successful_list)
+    print(txt_results(total_tries, len(successful_list)))
+
+    return successful_list
 
 
-	return r.status_code, r.elapsed.total_seconds()
-
-
-def main(URL):
-	"""
-	This function shows how the fuzzer is meant to be used
-
-	:param: URL - This is the url intendent to be checked
-	"""
-	input_fields = get_input_fields(URL) # Saves the unput fields to the list
-
-	# This is where I'll add the corrupted data
-	params = {}
-	sql_file = open(PAYLOADS)
-	sql_payloads = sql_file.readlines()
-
-	for field in input_fields:
-		params[field] = random.choice(sql_payloads)
-		print("Now trying: {0} for field: {1}".format(params[field], field))
-
-	status_code, time_elapsed = send_data(URL, params)
-	print("Status Code: {0}\nTime Elapsed: {1}".format(status_code, time_elapsed))
 
 if __name__ == '__main__':
-	URL = "https://www.hackthissite.org/missions/realistic/4/"
-
-	main(URL)
+    init_args(sys.argv[1:])
+    if debug_mode:
+        fuzzer_logger.debug("URL: {}, Max base strings: {},"\
+        "Max tries per string: {}, Odds file: {}, "\
+        "Debug: {}".format(url, total_base_strings, max_tries, odds_file, debug_mode))
+    # fuzzing()

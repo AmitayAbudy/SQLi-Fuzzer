@@ -2,13 +2,13 @@
 This file is to keep track with my to dos and to clearify the intention of each file
 
 ## To Do's
-* Fix the sql injection string creator at blind_sql_injection.py
-* Combine the usage of blind_sql_injection.py with check_website.py
+* Add more info about the project (why, how, what) in readme.md
+* Add sql commands to sq_generator.py
 
 ## Files
 
 ### fuzzer.py
-This file is in charge of handling the connection with the wesite.
+This file is in charge of handling the connection with the website.
 It check for input tags and sends string to the website, and checks the response time
 
 ### sql_creator.py

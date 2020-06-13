@@ -3,7 +3,8 @@ import random
 GRADES_FILE="grades.txt"
 chars = {} # Identify the score of each character
 old_strings = []
-special_charecters = [",", "/", "\\", "\'", "\"", "*", ")", "%", "=", "-"] # special charecters to add extra garde
+stage_one_chars = [",", "/", "\\", "\'", "\"", "*", ")", "%", "=", "-"] # special charecters to add extra garde
+strings = {} # {"string_id": [stage_num, current_grade]}
 
 def is_file_empty(filepath):
 	""" Check if file is empty by reading first character in it"""
@@ -24,6 +25,10 @@ def update_grades_from_file(filepath):
 	grade_lines = f.readlines()
 
 	for line in grade_lines:
+		if len(line.split(" ")) == 3:
+			chars[" "] = int(line.split(" ")[-1])
+			continue
+
 		char, grade = line.split(" ")
 		chars[char] = int(grade)
 
@@ -68,7 +73,7 @@ def create_string(grade, length):
 		elif len(s) == length and total_grade == grade:
 			bre
 		char, ch_grade = random.choice(chars.items())
-		
+
 		s += char
 		total_grade += ch_grade
 
@@ -84,8 +89,8 @@ def make_string(length):
 	s = ""
 
 	while len(s) < length and s not in old_strings:
-		char, ch_grade = random.choice(chars.items())
-		
+		char, ch_grade = random.choice(list(chars.items()))
+
 		s += char
 		total_grade += ch_grade
 
@@ -94,7 +99,7 @@ def make_string(length):
 def add_grade(s):
 	"""
 	Adding more grade to characters by a good string
-	:param: s - A string to use 
+	:param: s - A string to use
 	"""
 	for char in s:
 		chars[char] += 1

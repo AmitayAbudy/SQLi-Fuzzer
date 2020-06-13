@@ -9,10 +9,10 @@ with open(FILENAME) as f:
 unique_char = set()
 
 for line in lines:
-	for word in line.split():
-		if word == "\n":
+	for chr in line:
+		if chr == "\n":
 			continue
-		unique_char.add(word)
+		unique_char.add(chr)
 
 next_char = {}
 
@@ -20,8 +20,7 @@ for chr in unique_char:
 	next_char[chr] = []
 
 for line in lines:
-	line = line.split()
-	for i in range(len(line)-1):
+	for i in range(len(line)):
 		if line[i] == "\n" or line[i+1] == "\n":
 			break
 		next_char[line[i]].append(line[i+1])
