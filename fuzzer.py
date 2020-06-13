@@ -1,4 +1,4 @@
-vnimport sys, getopt
+import sys, getopt
 import json
 import logging
 
