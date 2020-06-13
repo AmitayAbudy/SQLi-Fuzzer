@@ -4,7 +4,8 @@
 |          ------------------------          |
 |                                            |
 |       Strings tried:                 0     |
-|       Successful Strings:            0     |
+|       Successfully Injected:         0     |
+|       Made errors:                   0     |
 |                                            |
 |             Fuzzer parameters:             |
 |             ------------------             |
