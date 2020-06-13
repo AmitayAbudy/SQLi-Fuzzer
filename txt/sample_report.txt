@@ -1,0 +1,17 @@
+----------------------------------------------
+|          ------------------------          |
+|          SQLi Fuzzer Conclusions:          |
+|          ------------------------          |
+|                                            |
+|       Strings tried:                 0     |
+|       Successful Strings:            0     |
+|                                            |
+|             Fuzzer parameters:             |
+|             ------------------             |
+|       Maximum Base string:           0     |
+|       Maximum commands in string:    0     |
+|                                            |
+|      You can check the tested strings      |
+|             in the full report             |
+|             at:report_file.txt             |
+----------------------------------------------
