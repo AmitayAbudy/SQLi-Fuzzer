@@ -1,15 +1,17 @@
 import numpy as np
 import uuid
 import db
-# from health import calculate_final_stats
+from fuzzer import get_odds_and_debug
+
 MAX_RECURSION = 5
 MAX_REPS = 10
-# automate this as well
 opening_chars = ["\'", "\"", ")", "1"]
 comment_chars = ["#", "--", "'vRxe'='vRxe"]
 string_trees = []
 
-stats = db.init_stats("odds.json")
+odds_file, debug_mode = get_odds_and_debug()
+
+stats = db.init_stats(odds_file)
 
 def is_duplicated(s):
     """
@@ -19,6 +21,7 @@ def is_duplicated(s):
     if len(s) < 2:
         return False
     return s[-1] == s[-2]
+
 
 def create_string(call_time=0):
     """
@@ -41,7 +44,6 @@ def create_string(call_time=0):
             return new_id, s
         if not is_duplicated(s):
             s += cmd
-
 
 def upgrade(id, call_time=0):
     """
@@ -104,8 +106,6 @@ def finishing_touches(id):
     return new_id, s
 
 
-def notify(id):
-    pass
 
 
 if __name__ == '__main__':

@@ -1,4 +1,4 @@
-import sys, getopt
+vnimport sys, getopt
 import json
 import logging
 
@@ -13,6 +13,12 @@ total_base_strings = 10
 max_tries = 7
 odds_file = "odds.json"
 debug_mode = False
+
+def get_odds_and_debug():
+    """
+    this function returns the name for the odds file
+    """
+    return odds_file, debug_mode
 
 def init_args(argv):
     """
@@ -124,7 +130,6 @@ def fuzzing():
         if debug_mode:
             fuzzer_logger.info(" Checked: {}, Result: {}".format(s, c))
         if c != "normal":
-            notify(id) # TODO: implement learning
             abnormal.append((id, s))
     # Removing abnormal strings from s_list
     s_list = [(id,s) for id, s in s_list if (id,s) not in abnormal]
@@ -149,11 +154,9 @@ def fuzzing():
             if debug_mode:
                 fuzzer_logger.info("   Checked: {}, Result: {}".format(s, c))
             if c != "normal":
-                notify(id)
                 abnormal.append((id,s))
                 break
 
-# TODO: When to ditch a string?
     print("Adding another command to abnormal strings")
     # Upgrading abnormal strings to try and make them better
     if debug_mode:

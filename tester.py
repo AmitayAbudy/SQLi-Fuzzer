@@ -1,16 +1,18 @@
 import requests
 from bs4 import BeautifulSoup
 import logging
+
+from fuzzer import get_odds_and_debug
+
 logging.basicConfig(filename="logs/fuzzer.log", level=logging.DEBUG)
 tester_logger = logging.getLogger("Tester")
+
 # Disable annoying debug logs from requests module
 logging.getLogger("urllib3").setLevel(logging.WARNING)
+
 CHECK_LOADTIME_NUM = 10
-# Payloads:
-#     Injection: SLEEP(1)/*' or SLEEP(1) or \'\" or SLEEP(5) or \"*/
-#     Error: \' OR 1=1
-#     Normal: asdfgh
 time_to_load = 0.0
+odds_file, debug_mode = get_odds_and_debug()
 
 def get_input_fields(URL):
 	"""
