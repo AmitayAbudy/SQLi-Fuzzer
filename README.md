@@ -19,3 +19,7 @@ Available parameters:
 -    -t Max tries for string, default 7
 -    -f odds file (in json format), default "odds.json"
 -    -d debug mode, default False
+
+```sh
+python fuzzer.py -u "http://localhost/login-1" -b 10 -t 7 -f "odds.json" -d
+```
