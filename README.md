@@ -14,8 +14,8 @@ This project needs the following plugings installed:
 Run the fuzzer.py command
 
 Available parameters:
-    -u URL to check, default my test site "http://localhost/login-1"
-    -b Max total base strings, default 10
-    -t Max tries for string, default 7
-    -f odds file (in json format), default "odds.json"
-    -d debug mode, default False
+-    -u URL to check, default my test site "http://localhost/login-1"
+-    -b Max total base strings, default 10
+-    -t Max tries for string, default 7
+-    -f odds file (in json format), default "odds.json"
+-    -d debug mode, default False
