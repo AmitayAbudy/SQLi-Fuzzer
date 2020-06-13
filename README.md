@@ -5,9 +5,9 @@ This is a simple SQLi fuzzer that helps you detetct payloads in your web app or 
 
 ### Plugins
 This project needs the following plugings installed:
-* [Requests]
-* [Treelib]
-* [Beautiful Soup]
+* Requests
+* Treelib
+* Beautiful Soup
 
 
 ### How to use:
