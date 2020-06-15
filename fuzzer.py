@@ -1,11 +1,9 @@
 import sys, getopt
 import json
 import logging
+from datetime import date
 
-from sql_generator import *
-from tester import payload_check
 
-logging.basicConfig(filename="logs/fuzzer.log", level=logging.DEBUG)
 fuzzer_logger = logging.getLogger("Fuzzer")
 
 url = "http://localhost/login-1/"
@@ -14,11 +12,8 @@ max_tries = 7
 odds_file = "odds.json"
 debug_mode = False
 
-def get_odds_and_debug():
-    """
-    this function returns the name for the odds file
-    """
-    return odds_file, debug_mode
+from sql_generator import *
+from tester import payload_check
 
 def init_args(argv):
     """
@@ -51,16 +46,27 @@ def init_args(argv):
         elif opt in "-d":
             debug_mode = True
 
+def get_odds():
+    """
+    this function returns the name for the odds file
+    """
+    return odds_file
+
 def change_info_in_string(s, info):
     """
     This function is an addon to the txt_results function.
     It help altering info inside the report format easier.
     """
     num_len = len(str(info))
-    s = s[:39] + str(info) + s[39 + num_len:]
+    zero_index = s.find("0")
+
+    s = s[:zero_index] + str(info) + s[zero_index + num_len:]
     return s
 
 def txt_results():
+    today = date.today()
+    date_today = today.strftime("%m_%d_%y")
+    filename = "{}_report_s{}_e{}.txt".format(date_today, len(successful_list), len(error_list))
     s = ""
     # Adding the fixed report info
     with open("txt/sample_report.txt") as f:
@@ -79,10 +85,14 @@ def txt_results():
     s += change_info_in_string(lines[11], total_base_strings)
     s += change_info_in_string(lines[12], max_tries)
 
-    for l in lines[13:18]:
+    for l in lines[13:16]:
+        s += l
+    s += change_info_in_string(lines[16], filename)
+
+    for l in lines[17:18]:
         s += l
 
-    with open("report_file.txt", "w") as f:
+    with open(filename, "w") as f:
         f.write(s)
 
         f.write("\nSuccessful Strings\n------------------\n")
@@ -117,19 +127,15 @@ def fuzzing():
     print("Making the base strings")
     for i in range(total_base_strings):
         id, s = create_string()
-        if debug_mode:
-            fuzzer_logger.info(" Base string: {}, id: {}".format(s, id))
+        fuzzer_logger.info(" Base string: {}, id: {}".format(s, id))
         s_list.append((id, s))
 
     print("Checking strings...")
     # Testing every base string
     for id, s in s_list:
-        print(s)
-        c = payload_check(url, s)
-        print(c)
-        if debug_mode:
-            fuzzer_logger.info(" Checked: {}, Result: {}".format(s, c))
-        if c != "normal":
+        check = payload_check(url, s)
+        fuzzer_logger.info(" Checked: {}, Result: {}".format(s, check))
+        if check != "normal":
             abnormal.append((id, s))
     # Removing abnormal strings from s_list
     s_list = [(id,s) for id, s in s_list if (id,s) not in abnormal]
@@ -144,16 +150,14 @@ def fuzzing():
         fuzzer_logger.info(" Upgrading \"normal\" strings")
     for id, s in s_list:
         tries = 0
-        if debug_mode:
-            fuzzer_logger.info(" Upgrading \"normal\" string: {}".format(s))
+        fuzzer_logger.info(" Upgrading \"normal\" string: {}".format(s))
         while tries < max_tries:
             tries += 1
             garbage.append((id,s))
             id, s = upgrade(id)
-            c = payload_check(url, s)
-            if debug_mode:
-                fuzzer_logger.info("   Checked: {}, Result: {}".format(s, c))
-            if c != "normal":
+            check = payload_check(url, s)
+            fuzzer_logger.info("   Checked: {}, Result: {}".format(s, check))
+            if check != "normal":
                 abnormal.append((id,s))
                 break
 
@@ -164,43 +168,39 @@ def fuzzing():
     for id, s in abnormal:
         garbage.append((id, s))
         id, s = upgrade(id)
-        c = payload_check(url, s)
-        if debug_mode:
-            fuzzer_logger.info(" Checked: {}, Result: {}".format(s, c))
-        if c == "normal":
+        check = payload_check(url, s)
+        fuzzer_logger.info(" Checked: {}, Result: {}".format(s, check))
+        if check == "normal":
             # abnormal string has stopped working
             garbage.append((id, s))
             continue
-        if c == "error":
+        if check == "error":
             # Same result as before, still interesting
             error_list.append((id, s))
-        if c == "success":
+        if check == "success":
             # This is a perfect string, goes straight to save
             successful_list.append((id, s))
 
     error_list += abnormal
     print("Now checking all the strings that made errors")
     # Trying to make error string be successful
-    if debug_mode:
-        fuzzer_logger.info(" Adding finishing touches(comments) to error strings")
+    fuzzer_logger.info(" Adding finishing touches(comments) to error strings")
     for id, s in error_list:
         tries = 0
         while tries < max_tries:
             tries += 1
             garbage.append((id, s))
             id, s = finishing_touches(id)
-            c = payload_check(url, s)
-            if debug_mode:
-                fuzzer_logger.info(" Checked: {}, Result: {}".format(s, c))
-            if c == "error":
+            check = payload_check(url, s)
+            fuzzer_logger.info(" Checked: {}, Result: {}".format(s, check))
+            if check == "error":
                 continue # nothing has changed, continue to check
-            if c == "normal":
+            if check == "normal":
                 garbage.append((id, s)) # error string broke, throw it to garbage
                 break
-            if c == "success":
+            if check == "success":
                 successful_list.append((id, s)) # the string is perfect!, Saving it...
                 break
-
 
     print(txt_results())
     return successful_list
@@ -209,8 +209,10 @@ def fuzzing():
 
 if __name__ == '__main__':
     init_args(sys.argv[1:])
-    if debug_mode:
-        fuzzer_logger.debug("URL: {}, Max base strings: {},"\
-        "Max tries per string: {}, Odds file: {}, "\
-        "Debug: {}".format(url, total_base_strings, max_tries, odds_file, debug_mode))
+
+    logging.basicConfig(filename="" if debug_mode else "logs/fuzzer.log", level=logging.DEBUG)
+    fuzzer_logger.debug("URL: {}, Max base strings: {},"\
+    "Max tries per string: {}, Odds file: {}, "\
+    "Debug: {}".format(url, total_base_strings, max_tries, odds_file, debug_mode))
+
     fuzzing()
