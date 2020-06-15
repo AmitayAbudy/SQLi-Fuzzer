@@ -2,9 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import logging
 
-from fuzzer import get_odds_and_debug
 
-logging.basicConfig(filename="logs/fuzzer.log", level=logging.DEBUG)
 tester_logger = logging.getLogger("Tester")
 
 # Disable annoying debug logs from requests module
@@ -12,7 +10,7 @@ logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 CHECK_LOADTIME_NUM = 10
 time_to_load = 0.0
-odds_file, debug_mode = get_odds_and_debug()
+
 
 def get_input_fields(URL):
 	"""
@@ -35,7 +33,7 @@ def get_input_fields(URL):
 			pass
 		else:
 			print("Can't handle this input tag:\n" + str(inpt))
-
+		tester_logger.debug(" Input Fields: {}".format(fields))
 	return fields
 
 def check_method(html):
@@ -48,9 +46,9 @@ def check_method(html):
     form_tag = soup.find_all("form")
     form_tag = form_tag[0]
 
+    tester_logger.debug(" Sending Method: {}".format(form_tag["method"]))
 	# Sends the response to the URL
     if "method" in form_tag.attrs and form_tag["method"].lower() == "post":
-		# Use default - GET
         return "post"
     elif "method" in form_tag.attrs and form_tag["method"].lower() == "get":
         return "get"
@@ -107,14 +105,13 @@ def payload_check(URL, payload):
     success - To alert that the string is working
     normal - to alert that there is no special impact on the site
     """
+
 	normal_time, normal_length = get_info(URL)
 	suspicious_time, suspicious_length = get_info(URL, payload)
 
 	loadtime = check_loadtime(URL)
-	print(loadtime)
-
-	tester_logger.debug("Normal Time: {}, Normal Length: {}".format(normal_time, normal_length))
-	tester_logger.debug("Suspicious Time: {}, Suspicious Length: {}".format(suspicious_time, suspicious_length))
+	tester_logger.info(" Normal Time: {}, Normal Length: {}".format(normal_time, normal_length))
+	tester_logger.info(" Suspicious Time: {}, Suspicious Length: {}".format(suspicious_time, suspicious_length))
 
 	if normal_length != suspicious_length:
 		return "error"
