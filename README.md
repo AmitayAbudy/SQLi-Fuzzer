@@ -1,16 +1,28 @@
+
+
 # SQLi Fuzzer
 
 Hello! This is my final project for high school Cyber Security Class.
 This is a simple SQLi fuzzer that helps you detetct payloads in your web app or server.
+![SQL Injection example](https://miro.medium.com/max/2760/1*NTwLMRZq40UhhEDhciaeVQ.png)
+## Installation:
+Opening cmd/Terminal in the project location in the computer and running:
 
-### Plugins
-This project needs the following plugings installed:
-* Requests
-* Treelib
-* Beautiful Soup
+```sh
+pip install -r requirements.txt
+```
 
+This command will install all the required modules for this project.
 
-### How to use:
+### Setting up a test site
+In order to check this project legally (At least in Israel) you will need a test site.
+For my development and research i used OWASP Bricks Test Site.
+
+[Here](https://sechow.com/bricks/docs/installation.html) you can find the Installation guide for it.
+
+Of curse you can use any test site with this script, this is just my recommendation.
+
+## How to use:
 Run the fuzzer.py command
 
 Available parameters:
