@@ -1,7 +1,7 @@
 import json
 
 FILENAME = "sql_bank.txt"
-JSON_NAME = "odds_new.json"
+JSON_NAME = "odds.json"
 
 with open(FILENAME) as f:
 	lines = f.readlines()
