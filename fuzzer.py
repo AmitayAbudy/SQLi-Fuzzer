@@ -9,11 +9,11 @@ fuzzer_logger = logging.getLogger("Fuzzer")
 url = "http://localhost/login-1/"
 total_base_strings = 10
 max_tries = 7
-odds_file = "odds.json"
+odds_file = "Tools/Database/odds.json"
 debug_mode = False
 
-from sql_generator import *
-from tester import payload_check
+from Tools.sql_generator import *
+from Tools.tester import payload_check
 
 def init_args(argv):
     """
@@ -45,12 +45,7 @@ def init_args(argv):
             odds_file = arg
         elif opt in "-d":
             debug_mode = True
-
-def get_odds():
-    """
-    this function returns the name for the odds file
-    """
-    return odds_file
+    init_stats(odds_file)
 
 def change_info_in_string(s, info):
     """
