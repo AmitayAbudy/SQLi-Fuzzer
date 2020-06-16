@@ -2,9 +2,10 @@
 
 # SQLi Fuzzer
 
-Hello! This is my final project for high school Cyber Security Class.
-This is a simple SQLi fuzzer that helps you detetct payloads in your web app or server.
-![SQL Injection example](https://miro.medium.com/max/2760/1*NTwLMRZq40UhhEDhciaeVQ.png)
+This is my Cyber Security class final project.
+
+The project is a simple SQLi fuzzer that can help you detect sql payloads in your web app or server.
+![SQL Injection example](https://miro.medium.com/max/600/1*mTKfq-BXgewrnF8A57TTNw.png)
 ## Installation:
 Opening cmd/Terminal in the project location in the computer and running:
 
